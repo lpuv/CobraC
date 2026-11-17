@@ -1,5 +1,5 @@
 [project]
-name = "ccompiler"
+name = "CobraC"
 version = "0.1.0"
 description = "A C compiler in Python. why not?"
 readme = "README.md"
