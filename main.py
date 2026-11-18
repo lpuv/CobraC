@@ -1,10 +1,8 @@
 #!.venv/bin/python
 
 import argparse
-import re
 import sys
 
-from dataclasses import dataclass
 
 from lexer import LexError, lex
 
@@ -36,8 +34,8 @@ def main():
         print(f"lex error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    for token in tokens:
-        if args.verbose:
+    if args.verbose:
+        for token in tokens:
             print(token)
 
 

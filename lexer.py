@@ -1,7 +1,8 @@
-# Order matters for ties: keywords come before IDENT so that "int" lexes as INT.
 import re
 
+type Token = tuple[str, str]
 
+# Order matters for ties: keywords come before IDENT so that "int" lexes as INT.
 TOKENS = [
     ("INT", r"int\b"),
     ("VOID", r"void\b"),
@@ -28,7 +29,7 @@ class LexError(Exception):
 
 def fast_longest_match(
     text: str, pos: int, rules: list[tuple[str, re.Pattern]]
-) -> tuple[str, str] | None:
+) -> Token | None:
     """Return (token_type, lexeme) for the longest match at text[pos:], or None.
 
     On equal-length matches, the earliest rule wins (strict >).
@@ -45,7 +46,7 @@ def fast_longest_match(
     return best
 
 
-def lex(source: str) -> list[tuple[str, str]]:
+def lex(source: str) -> list[Token]:
     tokens = []
     pos = 0
 
@@ -66,4 +67,3 @@ def lex(source: str) -> list[tuple[str, str]]:
             pos += len(match[1])
 
     return tokens
-
