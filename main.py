@@ -2,8 +2,10 @@
 
 import argparse
 import sys
+from pprint import pprint
 
 
+from codegen import gen_program
 from lexer import LexError, lex
 from parser import ParseError, Parser
 
@@ -38,7 +40,7 @@ def main():
     if args.verbose:
         print("lex output:")
         for token in tokens:
-            print(token)
+            pprint(token)
 
     if args.lex:
         sys.exit(0)
@@ -52,9 +54,18 @@ def main():
 
     if args.verbose:
         print("parse output:")
-        print(program)
+        pprint(program)
 
     if args.parse:
+        sys.exit(0)
+
+    asm_program = gen_program(program)
+
+    if args.verbose:
+        print("codegen output:")
+        pprint(asm_program)
+
+    if args.codegen:
         sys.exit(0)
 
 
