@@ -5,21 +5,22 @@ import sys
 
 
 from lexer import LexError, lex
+from parser import ParseError, Parser
 
 
-parser = argparse.ArgumentParser(
+arg_parser = argparse.ArgumentParser(
     prog="cobrac", description="A hobby C compiler in Python", epilog=""
 )
 
-parser.add_argument("input")
-parser.add_argument("--lex", action="store_true")
-parser.add_argument("--parse", action="store_true")
-parser.add_argument("--codegen", action="store_true")
-parser.add_argument("--verbose", action="store_true")
+arg_parser.add_argument("input")
+arg_parser.add_argument("--lex", action="store_true")
+arg_parser.add_argument("--parse", action="store_true")
+arg_parser.add_argument("--codegen", action="store_true")
+arg_parser.add_argument("--verbose", action="store_true")
 
 
 def main():
-    args = parser.parse_args()
+    args = arg_parser.parse_args()
 
     try:
         with open(args.input, "r", encoding="utf-8") as f:
@@ -35,8 +36,26 @@ def main():
         sys.exit(1)
 
     if args.verbose:
+        print("lex output:")
         for token in tokens:
             print(token)
+
+    if args.lex:
+        sys.exit(0)
+
+    parser = Parser(tokens)
+    try:
+        program = parser.parse_program()
+    except ParseError as e:
+        print(f"parse error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.verbose:
+        print("parse output:")
+        print(program)
+
+    if args.parse:
+        sys.exit(0)
 
 
 if __name__ == "__main__":
