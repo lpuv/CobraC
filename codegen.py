@@ -44,7 +44,7 @@ class Unary:
 
 @dataclass
 class AllocateStack:
-    offset: int
+    size: int
 
 
 @dataclass
@@ -87,7 +87,11 @@ class CodegenError(Exception):
 
 
 def gen_program(prog: tacky.Program) -> Program:
-    return Program(gen_function(prog.function))
+    func = gen_function(prog.function)
+    replacer = PseudoReplacer()
+    replaced_instructions, stack_size = replacer.replace_pass(func)  # pass 2
+    fixedup_instructions = replacer.fixup_pass(replaced_instructions, stack_size)
+    return Program(Function(func.name, fixedup_instructions))
 
 
 def gen_function(func: tacky.Function) -> Function:
@@ -131,3 +135,51 @@ def gen_operator(op: tacky.UnaryOperator) -> UnaryOperator:
             return Neg()
         case _:
             raise CodegenError(f"Error processing TACKY operator during codegen: {op}")
+
+
+class PseudoReplacer:
+    def __init__(self) -> None:
+        self.pseudo_regs: dict[str, int] = {}
+        self.current_offset = 0
+
+    def replace_operand(self, operand: Operand) -> Operand:
+        match operand:
+            case Pseudo(name):
+                if name not in self.pseudo_regs:
+                    self.current_offset -= 4
+                    self.pseudo_regs[name] = self.current_offset
+                return Stack(self.pseudo_regs[name])
+            case _:
+                return operand
+
+    def replace_instruction(self, instruction: Instruction) -> Instruction:
+        match instruction:
+            case Mov(src, dst):
+                return Mov(self.replace_operand(src), self.replace_operand(dst))
+            case Unary(unary_op, operand):
+                return Unary(unary_op, self.replace_operand(operand))
+            case _:
+                return instruction
+
+    def replace_pass(self, function: Function) -> tuple[list[Instruction], int]:
+        replaced_instructions = []
+        for instruction in function.instructions:
+            replaced_instructions.append(self.replace_instruction(instruction))
+        return replaced_instructions, self.current_offset
+
+    def fixup_pass(
+        self, instructions: list[Instruction], stack_size: int
+    ) -> list[Instruction]:
+        fixedup_instructions = []
+        if stack_size != 0:
+            fixedup_instructions.append(AllocateStack(abs(stack_size)))
+
+        for instruction in instructions:
+            match instruction:
+                case Mov(Stack() as src, Stack() as dst):
+                    fixedup_instructions.append(Mov(src, Reg(R10())))
+                    fixedup_instructions.append(Mov(Reg(R10()), dst))
+                case _:
+                    fixedup_instructions.append(instruction)
+
+        return fixedup_instructions
