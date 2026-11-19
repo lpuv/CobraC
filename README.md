@@ -1,4 +1,3 @@
 # CobraC
 
-One day, this will be a working C compiler in Python.
-This is a personal project to learn how they work.
+a personal project to try to build a working C compiler in Python
