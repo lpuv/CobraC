@@ -93,7 +93,7 @@ def main():
     if args.tacky:
         sys.exit(0)
 
-    asm_program = gen_program(program)
+    asm_program = gen_program(tacky_program)
 
     if args.verbose:
         print("codegen output:")

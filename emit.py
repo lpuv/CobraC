@@ -1,4 +1,4 @@
-from codegen import Function, Imm, Instruction, Mov, Operand, Program, Register, Ret
+from codegen import Function, Imm, Instruction, Mov, Operand, Program, Reg, Ret
 
 
 class EmitError(Exception):
@@ -33,7 +33,7 @@ def emit_operand(asm_operand: Operand) -> str:
     match asm_operand:
         case Imm(val):
             return f"${val}"
-        case Register():
-            return "%eax"
+        case Reg(register):
+            return f"%{register}"
         case _:
             raise EmitError(f"Unexpected operand: {asm_operand}")
