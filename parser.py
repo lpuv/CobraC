@@ -27,14 +27,17 @@ class Return:
 class Constant:
     number: int
 
+
 @dataclass
 class Unary:
     unary_operator: UnaryOperator
     exp: Expression
 
+
 @dataclass
 class Complement:
     pass
+
 
 @dataclass
 class Negate:

@@ -12,6 +12,7 @@ from codegen import gen_program
 from emit import emit_program
 from lexer import LexError, lex
 from parser import ParseError, Parser
+from tacky import Tacky, TackyError
 
 
 arg_parser = argparse.ArgumentParser(
@@ -23,6 +24,7 @@ arg_parser.add_argument("--lex", action="store_true")
 arg_parser.add_argument("--parse", action="store_true")
 arg_parser.add_argument("--codegen", action="store_true")
 arg_parser.add_argument("--verbose", action="store_true")
+arg_parser.add_argument("--tacky", action="store_true")
 
 
 def main():
@@ -75,6 +77,20 @@ def main():
         pprint(program)
 
     if args.parse:
+        sys.exit(0)
+
+    tacky = Tacky()
+    try:
+        tacky_program = tacky.gen_program(program)
+    except TackyError as e:
+        print(f"tacky error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.verbose:
+        print("tacky output:")
+        pprint(tacky_program)
+
+    if args.tacky:
         sys.exit(0)
 
     asm_program = gen_program(program)
