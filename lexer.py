@@ -17,6 +17,10 @@ TOKENS = [
     ("TILDE", r"~"),
     ("HYPHEN", r"-"),
     ("DHYPHEN", r"--"),
+    ("PLUS", r"\+"),
+    ("STAR", r"\*"),
+    ("SLASH", r"/"),
+    ("PERCENT", r"%"),
 ]
 
 compiled_rules = [(name, re.compile(pattern)) for name, pattern in TOKENS]

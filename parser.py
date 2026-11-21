@@ -3,7 +3,17 @@ from dataclasses import dataclass
 from lexer import Token
 
 type UnaryOperator = Complement | Negate
-type Expression = Constant | Unary
+type BinaryOperator = Add | Subtract | Multiply | Divide | Remainder
+type Expression = Constant | Unary | Binary
+
+
+BINARY_OP_PRECEDENCE = {
+    "PLUS": 45,
+    "HYPHEN": 45,
+    "PERCENT": 50,
+    "SLASH": 50,
+    "STAR": 50,
+}
 
 
 # node types
@@ -35,12 +45,44 @@ class Unary:
 
 
 @dataclass
+class Binary:
+    binary_operator: BinaryOperator
+    exp: Expression
+    exp2: Expression
+
+
+@dataclass
 class Complement:
     pass
 
 
 @dataclass
 class Negate:
+    pass
+
+
+@dataclass
+class Add:
+    pass
+
+
+@dataclass
+class Subtract:
+    pass
+
+
+@dataclass
+class Multiply:
+    pass
+
+
+@dataclass
+class Divide:
+    pass
+
+
+@dataclass
+class Remainder:
     pass
 
 
@@ -72,7 +114,22 @@ class Parser:
 
         return current_token
 
-    def parse_exp(self) -> Expression:
+    def convert_binop(self, token: Token) -> BinaryOperator:
+        match token[0]:
+            case "PLUS":
+                return Add()
+            case "HYPHEN":
+                return Subtract()
+            case "STAR":
+                return Multiply()
+            case "SLASH":
+                return Divide()
+            case "PERCENT":
+                return Remainder()
+            case _:
+                raise ParseError(f"Unexpected token in expression: {token}")
+
+    def parse_factor(self) -> Expression:
         tok = self.peek()
         match tok:
             case ("CONST", _):
@@ -81,24 +138,38 @@ class Parser:
             case ("TILDE", _):
                 self.expect("TILDE")
                 operator = Complement()
-                operand = self.parse_exp()
-                return Unary(operator, operand)
+                inner_exp = self.parse_factor()
+                return Unary(operator, inner_exp)
             case ("HYPHEN", _):
                 self.expect("HYPHEN")
                 operator = Negate()
-                operand = self.parse_exp()
-                return Unary(operator, operand)
+                inner_exp = self.parse_factor()
+                return Unary(operator, inner_exp)
             case ("LPAREN", _):
                 self.expect("LPAREN")
-                inner_exp = self.parse_exp()
+                inner_exp = self.parse_exp(0)
                 self.expect("RPAREN")
                 return inner_exp
             case _:
                 raise ParseError(f"Unexpected token in expression: {tok}")
 
+    def parse_exp(self, min_prec: int) -> Expression:
+        left = self.parse_factor()
+        next_tok = self.peek()
+        while (
+            next_tok is not None
+            and next_tok[0] in BINARY_OP_PRECEDENCE
+            and BINARY_OP_PRECEDENCE[next_tok[0]] >= min_prec
+        ):
+            operator = self.convert_binop(self.expect(next_tok[0]))
+            right = self.parse_exp(BINARY_OP_PRECEDENCE[next_tok[0]] + 1)
+            left = Binary(operator, left, right)
+            next_tok = self.peek()
+        return left
+
     def parse_statement(self) -> Return:
         self.expect("RETURN")
-        exp = self.parse_exp()
+        exp = self.parse_exp(0)
         self.expect("SEMI")
         return Return(exp)
 

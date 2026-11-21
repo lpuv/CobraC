@@ -1,4 +1,20 @@
-from codegen import AX, R10, AllocateStack, Function, Imm, Instruction, Mov, Neg, Not, Operand, Program, Reg, Ret, Stack, Unary
+from codegen import (
+    AX,
+    R10,
+    AllocateStack,
+    Function,
+    Imm,
+    Instruction,
+    Mov,
+    Neg,
+    Not,
+    Operand,
+    Program,
+    Reg,
+    Ret,
+    Stack,
+    Unary,
+)
 
 
 class EmitError(Exception):
@@ -12,7 +28,12 @@ def emit_program(asm_prog: Program) -> str:
 
 
 def emit_function(asm_func: Function) -> list[str]:
-    instructions = [f"\t.globl {asm_func.name}", f"{asm_func.name}:", "\tpushq\t%rbp", "\tmovq\t%rsp, %rbp"]
+    instructions = [
+        f"\t.globl {asm_func.name}",
+        f"{asm_func.name}:",
+        "\tpushq\t%rbp",
+        "\tmovq\t%rsp, %rbp",
+    ]
     for asm_instruction in asm_func.instructions:
         instructions.extend(emit_instruction(asm_instruction))
 
